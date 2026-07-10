@@ -6,9 +6,11 @@ use App\Enums\AttendanceType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class AttendancesTable
 {
@@ -41,6 +43,15 @@ class AttendancesTable
                     ->label('Waktu')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
+                ImageColumn::make('photo')
+                    ->label('Foto Selfie')
+                    ->disk('public')
+                    ->width(100)
+                    ->height(100)
+                    ->square()
+                    ->url(fn ($record) => Storage::disk('public')->url($record->photo))
+                    ->openUrlInNewTab(),
+                    //->clickable(),
                 TextColumn::make('notes')
                     ->label('Catatan')
                     ->limit(30)

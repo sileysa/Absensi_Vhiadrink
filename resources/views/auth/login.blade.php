@@ -5,7 +5,7 @@
 @section('content')
     <div class="mx-auto max-w-md">
         <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h1 class="text-2xl font-bold text-emerald-900">Login Karyawan</h1>
+            <h1 class="text-2xl font-bold text-pink-900">Login Karyawan</h1>
             <p class="mt-2 text-sm text-slate-600">
                 Masuk dengan akun karyawan untuk melakukan absensi di stand yang sudah dipilih.
             </p>
@@ -22,7 +22,7 @@
                         value="{{ old('email') }}"
                         required
                         autofocus
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200"
                     >
                     @error('email')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -36,7 +36,7 @@
                         type="password"
                         name="password"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200"
                     >
                     @error('password')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -44,18 +44,18 @@
                 </div>
 
                 <label class="flex items-center gap-2 text-sm text-slate-600">
-                    <input type="checkbox" name="remember" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                    <input type="checkbox" name="remember" class="rounded border-slate-300 text-pink-600 focus:ring-pink-500">
                     Ingat saya
                 </label>
 
-                <button type="submit" class="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                <button type="submit" class="w-full rounded-xl bg-pink-600 px-4 py-3 text-sm font-semibold text-white hover:bg-pink-700">
                     Masuk
                 </button>
             </form>
 
             <p class="mt-6 text-center text-sm text-slate-500">
                 Belum pilih stand?
-                <a href="{{ route('dashboard') }}" class="font-medium text-emerald-700 hover:underline">Kembali ke dashboard</a>
+                <a href="{{ route('dashboard') }}" class="font-medium text-pink-700 hover:underline">Kembali ke dashboard</a>
             </p>
         </div>
     </div>

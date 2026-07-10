@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AttendanceType;
 use App\Models\Attendance;
 use App\Models\Stand;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -52,24 +53,37 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function checkIn(Request $request): RedirectResponse
+    public function checkIn(Request $request): RedirectResponse|JsonResponse
     {
         return $this->recordAttendance($request, AttendanceType::CheckIn);
     }
 
-    public function checkOut(Request $request): RedirectResponse
+    public function checkOut(Request $request): RedirectResponse|JsonResponse
     {
         return $this->recordAttendance($request, AttendanceType::CheckOut);
     }
 
-    private function recordAttendance(Request $request, AttendanceType $type): RedirectResponse
+    private function recordAttendance(Request $request, AttendanceType $type): RedirectResponse|JsonResponse
     {
+        // Validasi input
+        $validated = $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120', // max 5MB
+        ], [
+            'photo.required' => 'Foto selfie wajib diunggah.',
+            'photo.image' => 'File harus berupa gambar.',
+            'photo.mimes' => 'Foto harus dalam format jpeg, png, jpg, atau gif.',
+            'photo.max' => 'Ukuran foto tidak boleh lebih dari 5MB.',
+        ]);
+
         $standId = $request->session()->get('selected_stand_id');
 
         if (! $standId) {
-            return redirect()
-                ->route('dashboard')
-                ->with('error', 'Silakan pilih stand terlebih dahulu.');
+            $message = 'Silakan pilih stand terlebih dahulu.';
+            
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 400);
+            }
+            return redirect()->route('dashboard')->with('error', $message);
         }
 
         $stand = Stand::query()
@@ -87,7 +101,12 @@ class AttendanceController extends Controller
             ->exists();
 
         if ($existing) {
-            return back()->with('error', "Anda sudah melakukan absensi {$type->label()} hari ini.");
+            $message = "Anda sudah melakukan absensi {$type->label()} hari ini.";
+            
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 400);
+            }
+            return back()->with('error', $message);
         }
 
         if ($type === AttendanceType::CheckOut) {
@@ -99,8 +118,36 @@ class AttendanceController extends Controller
                 ->exists();
 
             if (! $hasCheckIn) {
-                return back()->with('error', 'Anda harus absen masuk terlebih dahulu.');
+                $message = 'Anda harus absen masuk terlebih dahulu.';
+                
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 400);
+                }
+                return back()->with('error', $message);
             }
+
+            // Validasi waktu checkout
+            if ($stand->checkout_time) {
+                $checkoutTime = Carbon::createFromFormat('H:i', $stand->checkout_time)
+                    ->setDate(now()->year, now()->month, now()->day);
+                
+                if (now()->lessThan($checkoutTime)) {
+                    $message = "Anda tidak bisa pulang sebelum pukul {$stand->checkout_time}. Waktu pulang Anda adalah pukul {$stand->checkout_time}.";
+                    
+                    if ($request->expectsJson()) {
+                        return response()->json(['success' => false, 'message' => $message], 400);
+                    }
+                    return back()->with('error', $message);
+                }
+            }
+        }
+
+        // Upload foto
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $filename = 'attendance_' . $user->id . '_' . $type->value . '_' . now()->timestamp . '.' . $file->getClientOriginalExtension();
+            $photoPath = $file->storeAs('attendance-photos', $filename, 'public');
         }
 
         Attendance::query()->create([
@@ -108,8 +155,15 @@ class AttendanceController extends Controller
             'stand_id' => $stand->id,
             'type' => $type,
             'attended_at' => now(),
+            'photo' => $photoPath,
         ]);
 
-        return back()->with('success', "Absensi {$type->label()} berhasil dicatat pada stand {$stand->name}.");
+        $successMessage = "Absensi {$type->label()} berhasil dicatat pada stand {$stand->name}. Foto telah tersimpan.";
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $successMessage]);
+        }
+        return back()->with('success', $successMessage);
     }
 }
+

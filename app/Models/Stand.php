@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'region', 'address', 'is_active'])]
+#[Fillable(['name', 'region', 'address', 'is_active', 'checkout_time'])]
 class Stand extends Model
 {
     protected function casts(): array

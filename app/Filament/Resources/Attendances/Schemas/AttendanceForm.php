@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Attendances\Schemas;
 use App\Enums\AttendanceType;
 use App\Models\Stand;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileInfo;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;

@@ -25,6 +25,12 @@ class StandForm
                     ->label('Alamat')
                     ->rows(3)
                     ->columnSpanFull(),
+                TextInput::make('checkout_time')
+                    ->label('Waktu Pulang (HH:mm)')
+                    ->placeholder('17:00')
+                    ->helperText('Masukkan waktu pulang dalam format HH:mm (contoh: 17:00)')
+                    ->regex('/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/')
+                    ->maxLength(5),
                 Toggle::make('is_active')
                     ->label('Aktif')
                     ->default(true),
