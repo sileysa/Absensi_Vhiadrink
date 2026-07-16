@@ -59,5 +59,19 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+
+        Shift::create([
+            'name' => 'Shift Pagi',
+            'checkin_start' => '07:15',
+            'checkin_end' => '07:30',
+            'checkout_time' => '14:00',
+        ]);
+
+        Shift::create([
+            'name' => 'Shift Siang',
+            'checkin_start' => '13:15',
+            'checkin_end' => '13:30',
+            'checkout_time' => '21:00',
+        ]);
     }
 }

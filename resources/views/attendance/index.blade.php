@@ -47,20 +47,32 @@
                 </div>
             </div>
 
-            @if($stand->checkout_time && !$checkOut)
+            @if($checkIn?->shift && !$checkOut)
                 <div class="mt-4 rounded-xl border border-pink-200 bg-pink-50 px-4 py-3">
+
                     <p class="text-sm text-pink-800">
-                        <strong>Waktu Pulang:</strong> {{ $stand->checkout_time }}
+                        <strong>Shift:</strong> {{ $checkIn->shift->name }}
                     </p>
+
+                    <p class="text-sm text-pink-800">
+                        <strong>Waktu Pulang:</strong>
+                        {{ \Carbon\Carbon::parse($checkIn->shift->checkout_time)->format('H:i') }}
+                    </p>
+
                     @php
-                        $checkoutTime = \Carbon\Carbon::createFromFormat('H:i', $stand->checkout_time)->setDate(now()->year, now()->month, now()->day);
+                        $checkoutTime = \Carbon\Carbon::parse($checkIn->shift->checkout_time)
+                            ->setDate(now()->year, now()->month, now()->day);
+
                         $isCheckoutTimeValid = now()->gte($checkoutTime);
                     @endphp
-                    @if(!$isCheckoutTimeValid)
+
+                    @unless($isCheckoutTimeValid)
                         <p class="mt-2 text-sm text-red-600">
-                            ⚠️ Anda tidak bisa pulang sebelum pukul {{ $stand->checkout_time }}
+                            ⚠️ Anda tidak bisa pulang sebelum pukul
+                            {{ \Carbon\Carbon::parse($checkIn->shift->checkout_time)->format('H:i') }}
                         </p>
-                    @endif
+                    @endunless
+
                 </div>
             @endif
 

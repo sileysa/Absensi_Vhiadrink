@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'stand_id', 'type', 'attended_at', 'notes', 'photo'])]
+#[Fillable(['user_id', 'stand_id', 'shift_id', 'type', 'attended_at', 'notes', 'photo'])]
 class Attendance extends Model
 {
     protected function casts(): array
@@ -26,5 +26,10 @@ class Attendance extends Model
     public function stand(): BelongsTo
     {
         return $this->belongsTo(Stand::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
     }
 }

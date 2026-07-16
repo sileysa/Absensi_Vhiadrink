@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use App\Models\Shift;
 
 class AttendanceController extends Controller
 {
@@ -30,7 +31,7 @@ class AttendanceController extends Controller
         $today = Carbon::today();
         $user = $request->user();
 
-        $todayAttendances = Attendance::query()
+        $todayAttendances = Attendance::with('shift')
             ->where('user_id', $user->id)
             ->where('stand_id', $stand->id)
             ->whereDate('attended_at', $today)
@@ -93,6 +94,32 @@ class AttendanceController extends Controller
         $user = $request->user();
         $today = Carbon::today();
 
+        $shift = null;
+
+        if ($type === AttendanceType::CheckIn) {
+
+            $currentTime = now()->format('H:i:s');
+
+            $shift = Shift::where('is_active', true)
+                ->where('checkin_start', '<=', $currentTime)
+                ->where('checkin_end', '>=', $currentTime)
+                ->first();
+
+            if (!$shift) {
+
+                $message = 'Sekarang bukan jam absensi.';
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                    ], 400);
+                }
+
+                return back()->with('error', $message);
+            }
+        }
+
         $existing = Attendance::query()
             ->where('user_id', $user->id)
             ->where('stand_id', $stand->id)
@@ -127,20 +154,31 @@ class AttendanceController extends Controller
             }
 
             // Validasi waktu checkout
-            if ($stand->checkout_time) {
-                $checkoutTime = Carbon::createFromFormat('H:i', $stand->checkout_time)
-                    ->setDate(now()->year, now()->month, now()->day);
+            $checkInAttendance = Attendance::where('user_id', $user->id)
+                ->where('stand_id', $stand->id)
+                ->whereDate('attended_at', today())
+                ->where('type', AttendanceType::CheckIn)
+                ->first();
+
+            $shift = $checkInAttendance->shift;
                 
-                if (now()->lessThan($checkoutTime)) {
-                    $message = "Anda tidak bisa pulang sebelum pukul {$stand->checkout_time}. Waktu pulang Anda adalah pukul {$stand->checkout_time}.";
-                    
-                    if ($request->expectsJson()) {
-                        return response()->json(['success' => false, 'message' => $message], 400);
-                    }
-                    return back()->with('error', $message);
+            if ($shift) {
+
+                $checkoutTime = Carbon::createFromFormat(
+                    'H:i',
+                    $shift->checkout_time
+                )->setDate(now()->year, now()->month, now()->day);
+
+                if (now()->lt($checkoutTime)) {
+
+                    return back()->with(
+                        'error',
+                        "Anda tidak bisa pulang sebelum pukul {$shift->checkout_time}"
+                    );
                 }
             }
         }
+
 
         // Upload foto
         $photoPath = null;
@@ -153,6 +191,7 @@ class AttendanceController extends Controller
         Attendance::query()->create([
             'user_id' => $user->id,
             'stand_id' => $stand->id,
+            'shift_id' => $shift->id,
             'type' => $type,
             'attended_at' => now(),
             'photo' => $photoPath,
@@ -164,6 +203,6 @@ class AttendanceController extends Controller
             return response()->json(['success' => true, 'message' => $successMessage]);
         }
         return back()->with('success', $successMessage);
+    
     }
 }
-
