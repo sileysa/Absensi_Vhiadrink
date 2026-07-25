@@ -24,7 +24,10 @@ class ShiftsTable
                 TextColumn::make('checkin_end')
                     ->time()
                     ->sortable(),
-                TextColumn::make('checkout_time')
+                TextColumn::make('checkout_start')
+                    ->time()
+                    ->sortable(),
+                TextColumn::make('checkout_end')
                     ->time()
                     ->sortable(),
                 IconColumn::make('is_active')

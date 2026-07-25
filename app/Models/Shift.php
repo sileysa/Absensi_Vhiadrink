@@ -13,6 +13,9 @@ class Shift extends Model
         'name',
         'checkin_start',
         'checkin_end',
+        'checkout_start',
+        'checkout_end',
         'checkout_time',
+        'is_active',
     ];
 }

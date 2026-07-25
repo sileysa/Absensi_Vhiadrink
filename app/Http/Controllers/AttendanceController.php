@@ -137,6 +137,7 @@ class AttendanceController extends Controller
         }
 
         if ($type === AttendanceType::CheckOut) {
+
             $hasCheckIn = Attendance::query()
                 ->where('user_id', $user->id)
                 ->where('stand_id', $stand->id)
@@ -145,35 +146,30 @@ class AttendanceController extends Controller
                 ->exists();
 
             if (! $hasCheckIn) {
-                $message = 'Anda harus absen masuk terlebih dahulu.';
-                
-                if ($request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => $message], 400);
-                }
-                return back()->with('error', $message);
+                return back()->with('error', 'Anda harus absen masuk terlebih dahulu.');
             }
 
-            // Validasi waktu checkout
-            $checkInAttendance = Attendance::where('user_id', $user->id)
+            $checkInAttendance = Attendance::query()
+                ->where('user_id', $user->id)
                 ->where('stand_id', $stand->id)
-                ->whereDate('attended_at', today())
+                ->whereDate('attended_at', $today)
                 ->where('type', AttendanceType::CheckIn)
                 ->first();
 
             $shift = $checkInAttendance->shift;
-                
+
             if ($shift) {
 
-                $checkoutTime = Carbon::createFromFormat(
-                    'H:i',
-                    $shift->checkout_time
-                )->setDate(now()->year, now()->month, now()->day);
+                $currentTime = now();
 
-                if (now()->lt($checkoutTime)) {
+                $checkoutStart = Carbon::createFromTimeString($shift->checkout_start);
+                $checkoutEnd = Carbon::createFromTimeString($shift->checkout_end);
+
+                if ($currentTime->lt($checkoutStart) || $currentTime->gt($checkoutEnd)) {
 
                     return back()->with(
                         'error',
-                        "Anda tidak bisa pulang sebelum pukul {$shift->checkout_time}"
+                        "Checkout hanya diperbolehkan antara {$shift->checkout_start} - {$shift->checkout_end}"
                     );
                 }
             }

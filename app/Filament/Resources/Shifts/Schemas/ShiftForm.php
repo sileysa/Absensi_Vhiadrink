@@ -19,7 +19,13 @@ class ShiftForm
                     ->required(),
                 TimePicker::make('checkin_end')
                     ->required(),
-                TimePicker::make('checkout_time')
+                TimePicker::make('checkout_start')
+                    ->label('Checkout Start')
+                    ->seconds(false)
+                    ->required(),
+                TimePicker::make('checkout_end')
+                    ->label('Checkout End')
+                    ->seconds(false)
                     ->required(),
                 Toggle::make('is_active')
                     ->required(),
